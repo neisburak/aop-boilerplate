@@ -8,4 +8,6 @@ public class Messages
     
     public static string UserCreated = "Kullanıcı başarıyla oluşturuldu.";
     public static string UserNotFound = "Kullanıcı bulunamadı.";
+    public static string UserCredentialsError = "Kullanıcı bilgileri hatalı girildi.";
+    public static string UserExists = "Kullanıcı bulundu.";    
 }

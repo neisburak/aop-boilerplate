@@ -17,5 +17,6 @@ public class AutofacBusinessModule : Module
         builder.RegisterType<ProductManager>().As<IProductService>();
         builder.RegisterType<CategoryDal>().As<ICategoryDal>();
         builder.RegisterType<UserManager>().As<IUserService>();
+        builder.RegisterType<AuthManager>().As<IAuthService>();
     }
 }
