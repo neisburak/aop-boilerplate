@@ -1,6 +1,9 @@
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Business.DependencyResolvers.Autofac;
+using Core.Utilities.Security.Encryption;
+using Core.Utilities.Security.Jwt;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.OpenApi.Models;
 
 namespace Api.Extensions;
@@ -24,13 +27,13 @@ public static class ServiceExtensions
                 },
             });
 
-            options.AddSecurityDefinition("Bearer", new()
+            options.AddSecurityDefinition(JwtBearerDefaults.AuthenticationScheme, new()
             {
                 Name = "Authorization",
                 Description = "JWT Authorization header using the Bearer scheme. Enter 'Bearer' [space] and then your token in the text input below. Example: 'Bearer 12345abcdef'",
                 In = ParameterLocation.Header,
                 Type = SecuritySchemeType.ApiKey,
-                Scheme = "Bearer"
+                Scheme = JwtBearerDefaults.AuthenticationScheme
             });
 
             options.AddSecurityRequirement(new OpenApiSecurityRequirement()
@@ -41,10 +44,10 @@ public static class ServiceExtensions
                         Reference = new OpenApiReference
                         {
                             Type = ReferenceType.SecurityScheme,
-                            Id = "Bearer"
+                            Id = JwtBearerDefaults.AuthenticationScheme
                         },
                         Scheme = "oauth2",
-                        Name = "Bearer",
+                        Name = JwtBearerDefaults.AuthenticationScheme,
                         In = ParameterLocation.Header,
                     },
                     new List<string>()
@@ -52,13 +55,33 @@ public static class ServiceExtensions
             });
         });
     }
-    
+
     public static void ConfigureAutofac(this ConfigureHostBuilder builder)
     {
         builder.UseServiceProviderFactory(new AutofacServiceProviderFactory())
         .ConfigureContainer<ContainerBuilder>(builder =>
         {
             builder.RegisterModule(new AutofacBusinessModule());
+        });
+    }
+
+    public static void ConfiguteAuthentication(this IServiceCollection services, IConfiguration configuration)
+    {
+        var tokenOptions = configuration.GetSection("TokenOptions").Get<TokenOptions>();
+
+        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        .AddJwtBearer(options =>
+        {
+            options.TokenValidationParameters = new()
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidIssuer = tokenOptions.Issuer,
+                ValidAudience = tokenOptions.Audience,
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = SecurityKeyHelper.CreateSecurityKey(tokenOptions.SecurityKey)
+            };
         });
     }
 }

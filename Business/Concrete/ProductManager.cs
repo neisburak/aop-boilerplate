@@ -1,5 +1,7 @@
 using Business.Abstract;
 using Business.Constants;
+using Business.ValidationRules.FluentValidation;
+using Core.Aspects.Autofac.Validation;
 using Core.Utilities.Results.Abstract;
 using Core.Utilities.Results.Concrete;
 using DataAccess.Abstract;
@@ -16,12 +18,14 @@ namespace Business.Concrete
             _productDal = productDal;
         }
 
+        [ValidationAspect(typeof(ProductValidator))]
         public IResult Add(Product product)
         {
             _productDal.Add(product);
             return Result.Succeed(Messages.ProductAdded);
         }
 
+        [ValidationAspect(typeof(ProductValidator))]
         public async Task<IResult> AddAsync(Product product, CancellationToken cancellationToken)
         {
             await _productDal.AddAsync(product, cancellationToken);
@@ -55,14 +59,14 @@ namespace Business.Concrete
         public IDataResult<Product?> Get(int id)
         {
             var product = _productDal.Get(g => g.ProductId == id);
-            if(product is null) return DataResult<Product?>.Error();
+            if (product is null) return DataResult<Product?>.Error();
             return DataResult<Product?>.Result(product);
         }
 
         public async Task<IDataResult<Product?>> GetAsync(int id, CancellationToken cancellationToken)
         {
             var product = await _productDal.GetAsync(g => g.ProductId == id, cancellationToken);
-            if(product is null) return DataResult<Product?>.Error();
+            if (product is null) return DataResult<Product?>.Error();
             return DataResult<Product?>.Result(product);
         }
 
